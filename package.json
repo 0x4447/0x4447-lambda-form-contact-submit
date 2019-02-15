@@ -1,0 +1,24 @@
+{
+  "name": "0x4447-lambda-form-contact-submit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "locally": "node -e 'require(\"./index\").handler(require(\"./lambda-payloads.json\"), \"{}\", function(error, response) {(error) ? console.log(\"Error: \", error) : console.log(\"Response: \", response) })'",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://davidgatti@github.com/0x4447/0x4447-lambda-form-contact-submit.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/0x4447/0x4447-lambda-form-contact-submit/issues"
+  },
+  "homepage": "https://github.com/0x4447/0x4447-lambda-form-contact-submit#readme",
+  "dependencies": {
+    "aws-sdk": "^2.403.0",
+    "validate.js": "^0.12.0"
+  }
+}
