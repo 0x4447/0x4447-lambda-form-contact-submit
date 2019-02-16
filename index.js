@@ -19,73 +19,46 @@ let secrets_manager = new aws.SecretsManager({
 //
 //	This function is responsabile for parsing and send the support email
 //
-exports.handler = async (event) => {
+exports.handler = (event) => {
 
-	//
-	//	1.	Convert the body in to a JS object
-	//
-	let body = JSON.parse(event.body);
+	return new Promise(function(resolve, reject) {
 
-	//
-	//	2.	Create a container that will be passed around the chain
-	//
-	let container = {
-		request: body,
-		email: {},
-		response: {}
-	};
-
-	//
-	//	->	Start the chain
-	//
-	try
-	{
-		container = await request_validation(container);
-		container = await get_secrets(container);
-		container = await check_re_captcha(container);
-		container = await create_the_email(container);
-		container = await send_the_email(container);
-		container = await make_the_response(container);
-	}
-	catch(error)
-	{
 		//
-		//  1.  Create a message to send back
+		//	1.	Create a container that will be passed around the chain
 		//
-		let message = {
-			message: error.message || error
+		let container = {
+			request: event,
+			email: {},
+			response: {}
 		};
 
 		//
-		//  2.  Create the response
+		//	->	Start the chain.
 		//
-		let response = {
-			statusCode: error.status || 500,
-			headers: {
+		request_validation(container)
+			.then(function(container) {
 
-				//
-				//	Required for CORS support to work
-				//
-				"Access-Control-Allow-Origin" : "*",
+				return get_secrets(container);
 
-				//
-				//	Required for cookies, authorization headers with HTTPS
-				//
-				"Access-Control-Allow-Credentials" : true
-			},
-			body: JSON.stringify(message, null, 4)
-		};
+			}).then(function(container) {
 
-		//
-		//  ->  Tell lambda that we finished
-		//
-		return response;
-	}
+				return check_re_captcha(container);
 
-	//
-	//	->	Return a positive response
-	//
-	return container.response;
+			}).then(function(container) {
+
+				return send_the_email(container);
+
+			}).then(function(container) {
+
+				return resolve(container.response);
+
+			}).catch(function(error) {
+
+				return reject(error);
+
+			});
+
+	});
 
 };
 
@@ -195,7 +168,7 @@ function check_re_captcha(container)
 		//	2.	Prepare the request configuration
 		//
 		let params = {
-			FunctionName: 'reCAPTCHA',
+			FunctionName: process.env.LAMBDA_RECAPTCHA,
 			Payload: JSON.stringify(data, null, 2),
 		};
 
@@ -269,16 +242,16 @@ function check_re_captcha(container)
 }
 
 //
-//	Once we know the data is correct we can create the whole email
+//  Send the email to the offcie using SES
 //
-function create_the_email(container)
+function send_the_email(container)
 {
 	return new Promise(function(resolve, reject) {
 
 		//
 		//	1.	Preapre the email data used to construct the final email
 		//
-		container.email = {
+		let data = {
 			from	: process.env.FROM,
 			to		: process.env.TO,
 			subject	: "From contact page",
@@ -288,30 +261,15 @@ function create_the_email(container)
 		};
 
 		//
-		//	->	Move to the next chain
-		//
-		return resolve(container);
-
-	});
-}
-
-//
-//  Send the email to the offcie using SES
-//
-function send_the_email(container)
-{
-	return new Promise(function(resolve, reject) {
-
-		//
-		//	1.	Prepare the request configuration
+		//	2.	Prepare the request configuration
 		//
 		let params = {
-			FunctionName: 'Toolbox_Send_Email',
-			Payload: JSON.stringify(container.email, null, 2),
+			FunctionName: process.env.LAMBDA_SEND_EMAIL,
+			Payload: JSON.stringify(data, null, 2),
 		};
 
 		//
-		//	2.	Invoke the Lambda Function
+		//	3.	Invoke the Lambda Function
 		//
 		lambda.invoke(params, function(error, data) {
 
@@ -354,38 +312,6 @@ function send_the_email(container)
 
 	});
 }
-
-//
-//	AWS Lamdas responses are much more complicted and require more data to
-//	produce a response that just works. Hend putting it all in one place.
-//
-function make_the_response(container)
-{
-	return new Promise(function(resolve, reject) {
-
-		//
-		//  1.  Create a positive message
-		//
-		container.response = {
-			statusCode: 200,
-			headers: {
-				"Access-Control-Allow-Origin" : "*",		// Required for CORS support to work
-				"Access-Control-Allow-Credentials" : true	// Required for cookies, authorization headers with HTTPS
-			},
-			body: JSON.stringify({
-				message: "Sent"
-			}, null, 4)
-
-		};
-
-		//
-		//	->	Move to the next chain
-		//
-		return resolve(container);
-
-	});
-}
-
 
 //  _    _   ______   _        _____    ______   _____     _____
 // | |  | | |  ____| | |      |  __ \  |  ____| |  __ \   / ____|
