@@ -191,51 +191,7 @@ function check_re_captcha(container)
 				return reject(error);
 			}
 
-			//
-			//	2.	Convert the payload to JS
-			//
-			let response = JSON.parse(data.Payload);
-
-			//
-			//	3.	Check if there was an error
-			//
-			if(response)
-			{
-				//
-				//	2.
-				//
-				if(response.errorMessage)
-				{
-					//
-					//	1.	Create the error based on what the other function
-					//		sent back
-					//
-					let error = new Error(response.errorMessage);
-
-					//
-					//	->	Stop here and surface the error
-					//
-					return reject(error);
-				}
-			}
-
-			//
-			//	4.	Check if the resposne is wrong. If it is we know it is
-			//		a geenral error.
-			//
-			if(!response)
-			{
-				//
-				//	1.	Create the error based on what the other function
-				//		sent back
-				//
-				let error = new Error("reCatpcha Error");
-
-				//
-				//	->	Stop here and surface the error
-				//
-				return reject(error);
-			}
+			console.info(data)
 
 			//
 			//	->	Move to the next chain
@@ -289,27 +245,7 @@ function send_the_email(container)
 				return reject(error);
 			}
 
-			//
-			//	2.	Convert the payload to JS
-			//
-			let response = JSON.parse(data.Payload);
-
-			//
-			//	3.	Check if there was an error
-			//
-			if(response.errorMessage)
-			{
-				//
-				//	1.	Create the error based on what the other function
-				//		sent back
-				//
-				let error = new Error(response.errorMessage);
-
-				//
-				//	->	Stop here and surface the error
-				//
-				return reject(error);
-			}
+			console.info(data)
 
 			//
 			//	->	Move to the next chain
