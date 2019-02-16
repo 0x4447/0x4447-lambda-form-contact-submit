@@ -77,6 +77,8 @@ function request_validation(container)
 {
 	return new Promise(function(resolve, reject) {
 
+		console.info('request_validation');
+
 		//
 		//	1.	Check if the data conforms
 		//
@@ -113,6 +115,8 @@ function request_validation(container)
 function get_secrets(container)
 {
 	return new Promise(function(resolve, reject) {
+
+		console.info('get_secrets');
 
 		//
 		//	1.	Set what secrets do we need
@@ -155,6 +159,8 @@ function get_secrets(container)
 function check_re_captcha(container)
 {
 	return new Promise(function(resolve, reject) {
+
+		console.info('check_re_captcha');
 
 		//
 		//	1.	Create the object with the related data for the function
@@ -247,6 +253,8 @@ function check_re_captcha(container)
 function send_the_email(container)
 {
 	return new Promise(function(resolve, reject) {
+
+		console.info('send_the_email');
 
 		//
 		//	1.	Preapre the email data used to construct the final email
