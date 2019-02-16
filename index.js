@@ -166,8 +166,5 @@ let constraints = {
 	},
 	text: {
 		presence: true
-	},
-	recaptcha: {
-		presence: true
 	}
 };
