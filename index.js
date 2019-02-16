@@ -9,14 +9,6 @@ let lambda = new aws.Lambda({
 });
 
 //
-//	Create a Secrets Manager client
-//
-let secrets_manager = new aws.SecretsManager({
-	endpoint: "https://secretsmanager." + process.env.AWS_REGION + ".amazonaws.com",
-	region: process.env.AWS_REGION
-});
-
-//
 //	This function is responsabile for parsing and send the support email
 //
 exports.handler = (event) => {
@@ -37,14 +29,6 @@ exports.handler = (event) => {
 		//
 		request_validation(container)
 			.then(function(container) {
-
-				return get_secrets(container);
-
-			}).then(function(container) {
-
-				return check_re_captcha(container);
-
-			}).then(function(container) {
 
 				return send_the_email(container);
 
@@ -110,100 +94,6 @@ function request_validation(container)
 }
 
 //
-//	Make sure the user entered all the data, and the data is valid
-//
-function get_secrets(container)
-{
-	return new Promise(function(resolve, reject) {
-
-		console.info('get_secrets');
-
-		//
-		//	1.	Set what secrets do we need
-		//
-		let options = {
-			SecretId: "reCaptcha_home"
-		};
-
-		//
-		//	2.	Execute the query
-		//
-		secrets_manager.getSecretValue(options, function(error, data) {
-
-		    //
-		    //	1.	Check for a internal error
-		    //
-		    if(error)
-		    {
-		        return reject(error);
-		    }
-
-			//
-			//	2.	Save the reCaptcha secret for other promises
-			//
-		    container.secrets = JSON.parse(data.SecretString);
-
-		   	//
-			//	->	Move to the next chain
-			//
-			return resolve(container);
-
-		});
-
-	});
-}
-
-//
-//  Once we know that we have all the data we will validate
-//
-function check_re_captcha(container)
-{
-	return new Promise(function(resolve, reject) {
-
-		console.info('check_re_captcha');
-
-		//
-		//	1.	Create the object with the related data for the function
-		//
-		let data = {
-			recaptcha: container.request.recaptcha,
-			secret: container.secrets.SECRET
-		};
-
-		//
-		//	2.	Prepare the request configuration
-		//
-		let params = {
-			FunctionName: process.env.LAMBDA_RECAPTCHA,
-			Payload: JSON.stringify(data, null, 2),
-		};
-
-		//
-		//	2.	Invoke the Lambda Function
-		//
-		lambda.invoke(params, function(error, data) {
-
-			//
-			//	1.	Check if there was an error in invoking the fnction
-			//
-			if(error)
-			{
-				return reject(error);
-			}
-
-			console.info(data)
-
-			//
-			//	->	Move to the next chain
-			//
-			return resolve(container);
-
-		});
-
-	});
-}
-
-//
 //  Send the email to the offcie using SES
 //
 function send_the_email(container)
@@ -244,8 +134,6 @@ function send_the_email(container)
 			{
 				return reject(error);
 			}
-
-			console.info(data)
 
 			//
 			//	->	Move to the next chain
